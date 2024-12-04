@@ -1,15 +1,14 @@
-let animeData = []; // Store anime data globally
-let currentPage = 1; // Current page for pagination
-const itemsPerPage = 20; // Items to display per page
+let animeData = [];
+let currentPage = 1;
+const itemsPerPage = 20;
 
-// Function to display data in the table with pagination
 function displayData(data, page) {
   const dataBody = document.getElementById("data-body");
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = page * itemsPerPage;
   const pageData = data.slice(startIndex, endIndex);
 
-  dataBody.innerHTML = ""; // Clear the table before rendering
+  dataBody.innerHTML = "";
 
   pageData.forEach((item) => {
     const row = document.createElement("tr");
@@ -25,14 +24,13 @@ function displayData(data, page) {
   document.getElementById("page-number").textContent = `Page ${currentPage}`;
 }
 
-// Function to filter data based on search query
 function filterData() {
   const searchQuery = document
     .getElementById("search-input")
     .value.toLowerCase();
 
   if (searchQuery === "") {
-    displayData(animeData, currentPage); // Show full data if search is empty
+    displayData(animeData, currentPage);
     return;
   }
 
@@ -40,12 +38,11 @@ function filterData() {
     item.seriesTitle.toLowerCase().includes(searchQuery)
   );
 
-  displayData(filteredData, currentPage); // Display filtered data
+  displayData(filteredData, currentPage);
 }
 
-// Function to sort data based on selected option or default to A-Z
 function sortData(option = "seriesTitleAZ") {
-  const sortedData = [...animeData]; // Copy to avoid mutating original data
+  const sortedData = [...animeData];
 
   if (option === "seriesTitleAZ") {
     sortedData.sort((a, b) => a.seriesTitle.localeCompare(b.seriesTitle));
@@ -61,10 +58,9 @@ function sortData(option = "seriesTitleAZ") {
     sortedData.sort((a, b) => a.seriesEpisodes - b.seriesEpisodes);
   }
 
-  displayData(sortedData, currentPage); // Show sorted data
+  displayData(sortedData, currentPage);
 }
 
-// Function to load and parse XML data
 async function loadXML() {
   const response = await fetch("./animeList.xml");
   const xmlText = await response.text();
@@ -93,29 +89,25 @@ async function loadXML() {
     });
   }
 
-  sortData(); // Sort by A-Z initially
+  sortData();
 }
 
-loadXML(); // Call to load the XML data
+loadXML();
 
-// Event listener for search input field
 document.getElementById("search-input").addEventListener("input", filterData);
 
-// Event listener for Clear Search button
 const clearSearchButton = document.getElementById("clear-search");
 clearSearchButton.addEventListener("click", () => {
-  document.getElementById("search-input").value = ""; // Clear the search input
-  currentPage = 1; // Reset to the first page
-  sortData("seriesTitleAZ"); // Display full dataset
+  document.getElementById("search-input").value = "";
+  currentPage = 1;
+  sortData("seriesTitleAZ");
 });
 
-// Event listener for sorting dropdown
 document.getElementById("sort-by").addEventListener("change", (event) => {
   const sortBy = event.target.value;
-  sortData(sortBy); // Sort data based on the selected option
+  sortData(sortBy);
 });
 
-// Event listener for next page button
 document.getElementById("next-page").addEventListener("click", () => {
   if (currentPage * itemsPerPage < animeData.length) {
     currentPage++;
@@ -123,7 +115,6 @@ document.getElementById("next-page").addEventListener("click", () => {
   }
 });
 
-// Event listener for previous page button
 document.getElementById("prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
@@ -131,15 +122,13 @@ document.getElementById("prev-page").addEventListener("click", () => {
   }
 });
 
-// Event listener for Reset Sort button
 const resetSortButton = document.getElementById("reset-sort");
 resetSortButton.addEventListener("click", () => {
-  document.getElementById("sort-by").selectedIndex = 0; // Reset dropdown
-  currentPage = 1; // Reset to the first page
-  sortData("seriesTitleAZ"); // Sort by A-Z
+  document.getElementById("sort-by").selectedIndex = 0;
+  currentPage = 1;
+  sortData("seriesTitleAZ");
 });
 
-// Smooth scroll behavior on wheel events
 const scroll = new SmoothScroll("html", {
   speed: 300,
   speedAsDuration: true,
@@ -156,7 +145,7 @@ window.addEventListener(
         left: 0,
         behavior: "smooth",
       });
-    }, 50); // Adjust debounce time
+    }, 50);
   },
   { passive: false }
 );
