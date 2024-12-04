@@ -106,7 +106,7 @@ const clearSearchButton = document.getElementById("clear-search");
 clearSearchButton.addEventListener("click", () => {
   document.getElementById("search-input").value = ""; // Clear the search input
   currentPage = 1; // Reset to the first page
-  filterData(); // Display full dataset
+  sortData("seriesTitleAZ"); // Display full dataset
 });
 
 // Event listener for sorting dropdown
