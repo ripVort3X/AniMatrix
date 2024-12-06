@@ -1,151 +1,147 @@
-let animeData = [];
-let currentPage = 1;
-const itemsPerPage = 20;
+let xmlDoc;
 
-function displayData(data, page) {
-  const dataBody = document.getElementById("data-body");
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = page * itemsPerPage;
-  const pageData = data.slice(startIndex, endIndex);
+document
+  .getElementById("xmlFileInput")
+  .addEventListener("change", handleFileUpload);
+document
+  .getElementById("generateTable")
+  .addEventListener("click", generateTable);
+document.getElementById("resetButton").addEventListener("click", () => {
+  location.reload(); // Hard refresh the page
+});
 
-  dataBody.innerHTML = "";
+const dropZone = document.getElementById("dropZone");
+dropZone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone.classList.add("dragging");
+});
+dropZone.addEventListener("dragleave", () =>
+  dropZone.classList.remove("dragging")
+);
+dropZone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone.classList.remove("dragging");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === "text/xml") {
+    handleFile(file);
+  } else {
+    alert("Please upload a valid XML file.");
+  }
+});
 
-  pageData.forEach((item) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.seriesTitle}</td>
-      <td>${item.seriesEpisodes}</td>
-      <td>${item.myStatus}</td>
-      <td>${item.myScore}</td>
-    `;
-    dataBody.appendChild(row);
-  });
-
-  document.getElementById("page-number").textContent = `Page ${currentPage}`;
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    const parser = new DOMParser();
+    xmlDoc = parser.parseFromString(reader.result, "text/xml");
+    displayElements(xmlDoc);
+  };
+  reader.readAsText(file);
 }
 
-function filterData() {
-  const searchQuery = document
-    .getElementById("search-input")
-    .value.toLowerCase();
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    handleFile(file);
+  }
+}
 
-  if (searchQuery === "") {
-    displayData(animeData, currentPage);
+function displayElements(xmlDoc) {
+  const uniqueElements = new Set();
+  const elements = xmlDoc.getElementsByTagName("*");
+
+  for (let element of elements) {
+    uniqueElements.add(element.tagName);
+  }
+
+  const elementsContainer = document.getElementById("elementsContainer");
+  elementsContainer.innerHTML = "";
+
+  Array.from(uniqueElements).forEach((tag) => {
+    const div = document.createElement("div");
+    div.className = "element-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = tag;
+    checkbox.id = `checkbox-${tag}`;
+
+    const label = document.createElement("label");
+    label.htmlFor = checkbox.id;
+    label.textContent = tag;
+
+    div.appendChild(checkbox);
+    div.appendChild(label);
+    elementsContainer.appendChild(div);
+  });
+
+  document.getElementById("elementSelection").style.display = "block";
+}
+
+function generateTable() {
+  const selectedTags = Array.from(
+    document.querySelectorAll("#elementsContainer input:checked")
+  ).map((cb) => cb.value);
+
+  if (selectedTags.length === 0) {
+    alert("Please select at least one element to display.");
     return;
   }
 
-  const filteredData = animeData.filter((item) =>
-    item.seriesTitle.toLowerCase().includes(searchQuery)
-  );
+  const tableContainer = document.getElementById("tableContainer");
+  tableContainer.innerHTML = "";
 
-  displayData(filteredData, currentPage);
-}
+  const table = document.createElement("table");
+  table.className = "styled-table";
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
 
-function sortData(option = "seriesTitleAZ") {
-  const sortedData = [...animeData];
+  selectedTags.forEach((tag) => {
+    const th = document.createElement("th");
+    th.textContent = tag;
+    headerRow.appendChild(th);
+  });
 
-  if (option === "seriesTitleAZ") {
-    sortedData.sort((a, b) => a.seriesTitle.localeCompare(b.seriesTitle));
-  } else if (option === "seriesTitleZA") {
-    sortedData.sort((a, b) => b.seriesTitle.localeCompare(a.seriesTitle));
-  } else if (option === "myScoreHigh") {
-    sortedData.sort((a, b) => b.myScore - a.myScore);
-  } else if (option === "myScoreLow") {
-    sortedData.sort((a, b) => a.myScore - b.myScore);
-  } else if (option === "seriesEpisodesHigh") {
-    sortedData.sort((a, b) => b.seriesEpisodes - a.seriesEpisodes);
-  } else if (option === "seriesEpisodesLow") {
-    sortedData.sort((a, b) => a.seriesEpisodes - b.seriesEpisodes);
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+
+  // Detect the top-level tag containing the rows (e.g., "anime", "book", etc.)
+  const parentElement = detectParentElement(selectedTags);
+  if (!parentElement) {
+    alert("No matching elements found in the XML.");
+    return;
   }
 
-  displayData(sortedData, currentPage);
-}
+  const rows = Array.from(parentElement);
 
-async function loadXML() {
-  const response = await fetch("./animeList.xml");
-  const xmlText = await response.text();
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-
-  const animeList = xmlDoc.getElementsByTagName("anime");
-
-  for (let i = 0; i < animeList.length; i++) {
-    const seriesTitle =
-      animeList[i].getElementsByTagName("series_title")[0]?.textContent ||
-      "N/A";
-    const seriesEpisodes =
-      animeList[i].getElementsByTagName("series_episodes")[0]?.textContent ||
-      "N/A";
-    const myStatus =
-      animeList[i].getElementsByTagName("my_status")[0]?.textContent || "N/A";
-    const myScore =
-      animeList[i].getElementsByTagName("my_score")[0]?.textContent || "N/A";
-
-    animeData.push({
-      seriesTitle,
-      seriesEpisodes: parseInt(seriesEpisodes) || 0,
-      myStatus,
-      myScore: parseFloat(myScore) || 0,
+  rows.forEach((row) => {
+    const tr = document.createElement("tr");
+    selectedTags.forEach((tag) => {
+      const td = document.createElement("td");
+      const data = row.getElementsByTagName(tag)[0];
+      td.textContent = data ? data.textContent : "N/A";
+      tr.appendChild(td);
     });
-  }
+    tbody.appendChild(tr);
+  });
 
-  sortData();
+  table.appendChild(tbody);
+  tableContainer.appendChild(table);
+
+  document.getElementById("uploadSection").style.display = "none";
+  document.getElementById("tableSection").style.display = "block";
 }
 
-loadXML();
-
-document.getElementById("search-input").addEventListener("input", filterData);
-
-const clearSearchButton = document.getElementById("clear-search");
-clearSearchButton.addEventListener("click", () => {
-  document.getElementById("search-input").value = "";
-  currentPage = 1;
-  sortData("seriesTitleAZ");
-});
-
-document.getElementById("sort-by").addEventListener("change", (event) => {
-  const sortBy = event.target.value;
-  sortData(sortBy);
-});
-
-document.getElementById("next-page").addEventListener("click", () => {
-  if (currentPage * itemsPerPage < animeData.length) {
-    currentPage++;
-    displayData(animeData, currentPage);
+function detectParentElement(selectedTags) {
+  for (const tag of selectedTags) {
+    const elements = xmlDoc.getElementsByTagName(tag);
+    if (elements.length > 0) {
+      return elements[0].parentElement.parentElement.getElementsByTagName(
+        elements[0].parentElement.tagName
+      );
+    }
   }
-});
-
-document.getElementById("prev-page").addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage--;
-    displayData(animeData, currentPage);
-  }
-});
-
-const resetSortButton = document.getElementById("reset-sort");
-resetSortButton.addEventListener("click", () => {
-  document.getElementById("sort-by").selectedIndex = 0;
-  currentPage = 1;
-  sortData("seriesTitleAZ");
-});
-
-const scroll = new SmoothScroll("html", {
-  speed: 300,
-  speedAsDuration: true,
-});
-
-let timeout;
-window.addEventListener(
-  "wheel",
-  (event) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      window.scrollBy({
-        top: event.deltaY,
-        left: 0,
-        behavior: "smooth",
-      });
-    }, 50);
-  },
-  { passive: false }
-);
+  return null;
+}

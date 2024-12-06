@@ -1,58 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniMatrix</title>
-    <link rel="stylesheet" href="./style.css?v=1.0">
-</head>
-<body>
-    <h1 id="header">AniMatrix</h1>
-    
-    <!-- Container for both Sort and Search Inputs -->
-    <div class="sort-search-container">
-        <div class="sort-search-inputs">
-          <div class="sort-container">
-            <label for="sort-by">Sort By:</label>
-            <select id="sort-by">
-                <option value="seriesTitleAZ">Sort A to Z (Series Title)</option>
-                <option value="seriesTitleZA">Sort Z to A (Series Title)</option>
-                <option value="myScoreHigh">Highest Scored</option>
-                <option value="myScoreLow">Lowest Scored</option>
-                <option value="seriesEpisodesHigh">More Episodes</option>
-                <option value="seriesEpisodesLow">Less Episodes</option>
-            </select>
-          </div>
-          <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search...">
-          </div>
-        </div>
-        <div class="buttons-container">
-          <button id="reset-sort">Reset Sort</button>
-          <button id="clear-search">Clear Search</button>
-        </div>
-      </div>
-      
-    
-    <table id="data-table">
-        <thead>
-            <tr>
-                <th>Series Title</th>
-                <th>Episodes</th>
-                <th>Status</th>
-                <th>Score</th>
-            </tr>
-        </thead>
-        <tbody id="data-body"></tbody>
-    </table>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XML Analyzer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1 id="header">XML Analyzer</h1>
 
-    <div class="pagination-controls">
-        <button id="prev-page" class="page-button">Previous</button>
-        <span id="page-number">Page 1</span>
-        <button id="next-page" class="page-button">Next</button>
+    <div id="uploadSection" class="sort-search-container">
+      <h2>Upload Your XML File</h2>
+      <label for="xmlFileInput" class="custom-file-label">Choose File</label>
+      <input type="file" id="xmlFileInput" accept=".xml" hidden />
+      <div id="dropZone">Drag & Drop XML File Here</div>
+      <div id="elementSelection" style="display: none">
+        <h2>Select Elements to Display</h2>
+        <div id="elementsContainer"></div>
+        <button id="generateTable" class="page-button">Generate Table</button>
+      </div>
     </div>
 
-    <script src="./script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/smooth-scroll@16/dist/smooth-scroll.polyfills.min.js"></script>
-</body>
+    <div id="tableSection" style="display: none">
+      <h2>Generated Table</h2>
+      <button id="resetButton" class="page-button">Reset</button>
+      <div id="tableContainer"></div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
 </html>
